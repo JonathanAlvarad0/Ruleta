@@ -8,7 +8,8 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
       theme: {
         extend: {
           colors: {
@@ -21,15 +22,6 @@
             acavenCrimson: "#d91e36"
           },
           keyframes: {
-            pointerTension: {
-              "0%, 74%": { transform: "translateY(0) rotate(0deg)" },
-              "78%": { transform: "translateY(3px) rotate(-9deg)" },
-              "81%": { transform: "translateY(0) rotate(7deg)" },
-              "84%": { transform: "translateY(2px) rotate(-6deg)" },
-              "87%": { transform: "translateY(0) rotate(4deg)" },
-              "91%": { transform: "translateY(1px) rotate(-2deg)" },
-              "95%, 100%": { transform: "translateY(0) rotate(0deg)" }
-            },
             glowTension: {
               "0%, 72%": { opacity: "0.38", transform: "scale(1)" },
               "82%": { opacity: "0.75", transform: "scale(1.1)" },
@@ -53,7 +45,6 @@
             }
           },
           animation: {
-            pointerTension: "pointerTension 10s cubic-bezier(.2,.7,.15,1) both",
             glowTension: "glowTension 10s ease-in-out both",
             logoPulse: "logoPulse 3.2s ease-in-out infinite",
             fall: "fall linear forwards"
@@ -112,7 +103,7 @@
     <section class="stage relative mx-auto flex items-center justify-center" aria-label="Ruleta de premios">
       <div class="stage-glow"></div>
 
-      <!-- Indicador superior dorado -->
+      <!-- Indicador superior dorado con pines -->
       <div class="pointer" aria-hidden="true"><span></span></div>
 
       <!-- Aro luminoso + ruleta -->
@@ -211,15 +202,20 @@
 
   <!-- MODAL DE GANADOR -->
   <div id="winner-modal" class="modal-backdrop fixed inset-0 z-40 grid place-items-center bg-slate-950/85 p-5 backdrop-blur-md" hidden>
-    <div class="winner-modal relative w-full max-w-md rounded-3xl border-2 border-acavenGold bg-gradient-to-b from-sky-800/95 via-acavenDeep to-acavenNavy px-6 pt-9 pb-7 text-center shadow-[0_0_60px_rgba(20,124,255,0.55),0_0_30px_rgba(255,210,76,0.28),0_20px_60px_rgba(0,0,0,0.9)] sm:px-8" role="dialog" aria-modal="true" aria-labelledby="winner-title">
+    <div class="winner-modal relative w-full max-w-md rounded-3xl border-2 border-acavenGold bg-gradient-to-b from-sky-800/95 via-acavenDeep to-acavenNavy px-6 pt-24 pb-7 text-center shadow-[0_0_60px_rgba(20,124,255,0.55),0_0_30px_rgba(255,210,76,0.28),0_20px_60px_rgba(0,0,0,0.9)] sm:px-8 sm:pt-28" role="dialog" aria-modal="true" aria-labelledby="winner-title">
       <button
         id="close-modal"
         class="modal-close absolute top-3 right-4 cursor-pointer border-0 bg-transparent text-3xl leading-none text-sky-200 transition hover:scale-110 hover:text-acavenGold"
         type="button"
         aria-label="Cerrar"
-      >×</button>
-      <div class="modal-sparkle text-4xl text-acavenGold drop-shadow-[0_0_16px_rgba(255,210,76,0.75)]">✦</div>
-      <h2 id="winner-title" class="mt-1 mb-2 text-3xl font-black uppercase tracking-wide text-acavenGoldLight drop-shadow-[0_3px_12px_rgba(0,0,0,0.65)] sm:text-4xl"></h2>
+      >&times;</button>
+
+      <!-- Logo en círculo encima del modal con tamaño equilibrado -->
+      <div class="modal-avatar-ring" aria-hidden="false">
+        <img id="modal-brand-logo" class="modal-brand-logo" alt="Logo ACAVEN DE R.L.">
+      </div>
+
+      <h2 id="winner-title" class="mt-1 mb-1 text-3xl font-black uppercase tracking-wide text-acavenGoldLight drop-shadow-[0_3px_12px_rgba(0,0,0,0.65)] sm:text-4xl"></h2>
       <p id="winner-lead" class="m-0 text-sm font-semibold uppercase tracking-widest text-sky-200"></p>
       <img
         id="winner-image"

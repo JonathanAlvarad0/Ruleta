@@ -6,6 +6,8 @@
   let spinning = false;
   let currentRotation = 0;
   let spinTickTimer = null;
+  let pointerRafId = null;
+  let lastPinIndex = null;
   let confettiWaveTimers = [];
 
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -28,6 +30,7 @@
     $("[data-config]").each(function () { $(this).text(text($(this).data("config"))); });
     $("#brand-logo").attr("src", state.brand.logo);
     $("#brand-watermark").attr("src", state.brand.logo);
+    $("#modal-brand-logo").attr("src", state.brand.logo);
     $("#config-version").text(state.version);
     document.title = state.brand.name + " · " + state.brand.title;
   }
@@ -50,9 +53,11 @@
     const segment = 360 / count;
     const stops = prizes.map((p, i) => `${colors[i % colors.length]} ${i * segment}deg ${(i + 1) * segment}deg`).join(",");
     $wheel.css("background", `conic-gradient(${stops})`);
+    const narrowFactor = count >= 8 ? 0.76 : count >= 6 ? 0.88 : 1;
     prizes.forEach((prize, i) => {
       const centerAngle = i * segment + segment / 2;
       const $label = $("<span>", { class: "wheel-label", title: prize.title }).text(prize.title).css({
+        width: `${Math.round(115 * narrowFactor)}px`,
         transform: `translate(-50%, -50%) rotate(${centerAngle - 90}deg) translateX(var(--label-radius, 148px))`
       });
       $wheel.append($label);
@@ -79,54 +84,141 @@
       return null;
     }
   }
-  function playTickSound(progress) {
+  function getCurrentWheelAngle() {
+    const wheelEl = document.getElementById("wheel");
+    if (!wheelEl) return currentRotation;
+    const style = window.getComputedStyle(wheelEl);
+    const transform = style.transform;
+    if (!transform || transform === "none") return currentRotation;
+    const values = transform.match(/matrix\(([^)]+)\)/);
+    if (!values) return currentRotation;
+    const parts = values[1].split(",").map(Number);
+    const rad = Math.atan2(parts[1], parts[0]);
+    const deg = (rad * 180) / Math.PI;
+    return ((deg % 360) + 360) % 360;
+  }
+  function triggerPinRub(isSlowPhase) {
+    const pointerEl = document.querySelector(".pointer");
+    if (!pointerEl) return;
+    pointerEl.classList.remove("pin-hit", "pin-slow");
+    void pointerEl.offsetWidth;
+    pointerEl.classList.add("pin-hit");
+    if (isSlowPhase) {
+      pointerEl.classList.add("pin-slow");
+    }
+  }
+  function startPointerPinTracker(durationMs, pinCount) {
+    stopPointerPinTracker();
+    const startedAt = Date.now();
+    const stepDeg = 360 / Math.max(4, pinCount);
+    lastPinIndex = Math.floor(getCurrentWheelAngle() / stepDeg);
+
+    // Dispara de inmediato al arrancar el giro para que no haya silencio inicial
+    triggerPinRub(false);
+    playTickSound(0, false);
+
+    function track() {
+      if (!spinning) return;
+      const elapsed = Date.now() - startedAt;
+      const progress = Math.min(1, elapsed / Math.max(1000, durationMs));
+      const angle = getCurrentWheelAngle();
+      const pinIndex = Math.floor(angle / stepDeg);
+
+      if (pinIndex !== lastPinIndex) {
+        lastPinIndex = pinIndex;
+        const isSlowPhase = progress > 0.72;
+        triggerPinRub(isSlowPhase);
+        playTickSound(progress, isSlowPhase);
+      }
+
+      if (progress < 1) {
+        pointerRafId = requestAnimationFrame(track);
+      }
+    }
+
+    pointerRafId = requestAnimationFrame(track);
+  }
+  function stopPointerPinTracker() {
+    if (pointerRafId) {
+      cancelAnimationFrame(pointerRafId);
+      pointerRafId = null;
+    }
+    document.querySelector(".pointer")?.classList.remove("pin-hit", "pin-slow");
+  }
+  function playTickSound(progress, isSuspense) {
     const ctx = getAudioContext();
     if (!ctx) return;
     try {
       const now = ctx.currentTime;
       const osc = ctx.createOscillator();
+      const clickOsc = ctx.createOscillator();
       const gain = ctx.createGain();
-      const pitchBoost = 1 + (1 - progress) * 0.35;
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(760 * pitchBoost, now);
-      osc.frequency.exponentialRampToValueAtTime(240, now + 0.045);
+      const clickGain = ctx.createGain();
+
+      const baseFreq = isSuspense ? 1140 : 860 + (1 - progress) * 320;
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(baseFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(260, now + 0.055);
+
+      const volume = isSuspense ? 0.36 : 0.25;
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.exponentialRampToValueAtTime(0.11, now + 0.006);
-      gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.05);
+      gain.gain.exponentialRampToValueAtTime(volume, now + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+
+      clickOsc.type = "triangle";
+      clickOsc.frequency.setValueAtTime(2200, now);
+      clickOsc.frequency.exponentialRampToValueAtTime(520, now + 0.025);
+      clickGain.gain.setValueAtTime(0.001, now);
+      clickGain.gain.exponentialRampToValueAtTime(volume * 0.85, now + 0.003);
+      clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.028);
+
       osc.connect(gain).connect(ctx.destination);
+      clickOsc.connect(clickGain).connect(ctx.destination);
+
       osc.start(now);
-      osc.stop(now + 0.055);
+      osc.stop(now + 0.065);
+      clickOsc.start(now);
+      clickOsc.stop(now + 0.032);
     } catch (e) { /* audio no disponible */ }
   }
-  function startSpinSound(durationMs) {
+  function startSpinSound(durationMs, pinCount) {
     stopSpinSound();
     if (!state.celebration.soundEnabled) return;
-    const startedAt = Date.now();
-    function scheduleNextTick() {
-      if (!spinning) return;
-      const elapsed = Date.now() - startedAt;
-      const progress = Math.min(1, elapsed / Math.max(1000, durationMs));
-      if (progress >= 1) return;
-      playTickSound(progress);
-      const nextDelay = Math.round(55 + Math.pow(progress, 2.2) * 460);
-      spinTickTimer = setTimeout(scheduleNextTick, nextDelay);
-    }
-    scheduleNextTick();
+    startPointerPinTracker(durationMs, pinCount);
   }
   function stopSpinSound() {
     if (spinTickTimer) {
       clearTimeout(spinTickTimer);
       spinTickTimer = null;
     }
+    stopPointerPinTracker();
   }
   function playWinSound() {
     if (!state.celebration.soundEnabled) return;
     try {
       const ctx = getAudioContext();
       if (!ctx) return;
-      [523.25, 659.25, 783.99, 1046.5].forEach((frequency, i) => {
-        const osc = ctx.createOscillator(), gain = ctx.createGain();
-        osc.type = "sine"; osc.frequency.value = frequency; gain.gain.setValueAtTime(.001, ctx.currentTime + i * .11); gain.gain.exponentialRampToValueAtTime(.16, ctx.currentTime + i * .11 + .03); gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + i * .11 + .35); osc.connect(gain).connect(ctx.destination); osc.start(ctx.currentTime + i * .11); osc.stop(ctx.currentTime + i * .11 + .38);
+      const notes = [523.25, 659.25, 783.99, 1046.5, 1318.51];
+      notes.forEach((frequency, i) => {
+        const startAt = ctx.currentTime + i * 0.095;
+        const dur = i === notes.length - 1 ? 0.65 : 0.34;
+        const osc = ctx.createOscillator();
+        const overtone = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(frequency, startAt);
+        overtone.type = "sine";
+        overtone.frequency.setValueAtTime(frequency * 2, startAt);
+        gain.gain.setValueAtTime(0.001, startAt);
+        gain.gain.exponentialRampToValueAtTime(0.32, startAt + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, startAt + dur);
+        osc.connect(gain);
+        overtone.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startAt);
+        overtone.start(startAt);
+        osc.stop(startAt + dur + 0.02);
+        overtone.stop(startAt + dur + 0.02);
       });
     } catch (e) { /* audio no disponible */ }
   }
@@ -159,6 +251,7 @@
     confettiWaveTimers.push(setTimeout(() => $("#confetti").empty(), 7200));
   }
   function showWinner(prize) {
+    $("#modal-brand-logo").attr("src", state.brand.logo);
     $("#winner-title").text(state.labels.winnerTitle);
     $("#winner-lead").text(state.labels.winnerLead);
     $("#winner-image").attr({ src: prize.image, alt: prize.title });
@@ -173,7 +266,8 @@
     const prizes = availablePrizes(), count = prizes.length, segment = 360 / count, winner = chooseUniform(prizes), index = prizes.findIndex(p => p.id === winner.id);
     spinning = true; updateStatus(); $(".stage").addClass("spin-active");
     const duration = Number(state.celebration.spinDurationMs) || 10000;
-    startSpinSound(duration);
+    const pinCount = Math.max(count * 3, 12);
+    startSpinSound(duration, pinCount);
     const targetCenter = index * segment + segment / 2;
     const target = 360 - targetCenter;
     currentRotation += 360 * 6 + ((target - currentRotation) % 360 + 360) % 360;

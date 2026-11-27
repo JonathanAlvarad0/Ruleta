@@ -10,8 +10,8 @@ window.ACAVEN_CONFIG = {
     logo: "img/logo.png",
     eyebrow: "Incrementa · Gira y gana",
     title: "GIRA Y GANA",
-    subtitle: "Incrementa tus aportaciones desde $500 · Descubre tu premio navideño",
-    footer: "Una experiencia especial para nuestra gran familia ACAVEN"
+    subtitle: "INCREMENTA TUS APORTACIONES DESDE $500 - DESCUBRE TU PREMIO NAVIDEÑO",
+    footer: "UNA EXPERIENCIA ESPECIAL DE NUESTRA GRAN FAMILIA ACAVEN DE R.L"
   },
   labels: {
     spin: "GIRAR",
@@ -20,7 +20,7 @@ window.ACAVEN_CONFIG = {
     remainingOne: "premio disponible",
     noStock: "La magia volverá pronto",
     noStockDetail: "No quedan premios disponibles en esta jornada.",
-    winnerTitle: "¡Felicidades!",
+    winnerTitle: "¡Felicidades! Estimado asociado",
     winnerLead: "Tu premio navideño es",
     close: "Continuar",
     maintenance: "Mantenimiento",
@@ -42,9 +42,12 @@ window.ACAVEN_CONFIG = {
     soundEnabled: true
   },
   prizes: [
-    { id: "cafetera", title: "Cafetera navideña", image: "img/premio-3.png", stock: 3, accent: "#36c7ff" },
-    { id: "horno", title: "Horno", image: "img/premio-4.png", stock: 4, accent: "#ffd86b" },
-    { id: "licuadora", title: "Licuadora de cocina", image: "img/premio-1.png", stock: 2, accent: "#73e5ff" },
-    { id: "tostador", title: "Tostador", image: "img/premio-2.png", stock: 3, accent: "#ff9fcb" }
+    { id: "canasta", title: "Canasta Gourmet", image: "img/premio-1.png", stock: 7, accent: "#36c7ff" },
+    { id: "freidoras", title: "Freidora de aire", image: "img/premio-2.png", stock: 2, accent: "#ffd86b" },
+    { id: "cafetera", title: "Cafetera Black+Decker", image: "img/premio-3.png", stock: 2, accent: "#73e5ff" },
+    { id: "personalblender", title: "Personal Blender", image: "img/premio-4.png", stock: 3, accent: "#ff9fcb" },
+    { id: "sandiwchera", title: "Sandiwchera Black+Decker", image: "img/premio-5.png", stock: 1, accent: "#ff9fcb" }
+    ,{ id: "tarjeta", title: "Tarjeta de Super", image: "img/premio-6.png", stock: 4, accent: "#ff9fcb" }
+    ,{ id: "tarjetasiman", title: "Tarjeta de Siman", image: "img/premio-7.png", stock: 4, accent: "#ff9fcb" }
   ]
 };
