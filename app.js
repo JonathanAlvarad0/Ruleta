@@ -12,6 +12,7 @@
   let spinFinishTimer = null;
   let spinFinished = false;
   let pendingWinnerSlot = null;
+  let currentWheelSlots = [];
 
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
   function loadState() {
@@ -96,7 +97,8 @@
     return words.slice(0, 2).join(" ").slice(0, 15);
   }
   function renderWheel() {
-    const slots = expandedStockPrizes();
+    currentWheelSlots = expandedStockPrizes();
+    const slots = currentWheelSlots;
     const count = slots.length;
     const wheelEl = document.getElementById("wheel");
     if (!wheelEl) return;
@@ -157,9 +159,6 @@
     wheelEl.appendChild(fragment);
     updateStatus();
     preloadPrizeImages();
-  }
-  function chooseUniformSlot(slots) {
-    return slots[Math.floor(Math.random() * slots.length)];
   }
   function getAudioContext() {
     if (state.celebration && state.celebration.soundEnabled === false) return null;
@@ -477,24 +476,31 @@
     if (targetPrize) {
       targetPrize.stock = Math.max(0, Number(targetPrize.stock) - 1);
     }
+    const winnerInfo = targetPrize
+      ? { ...targetPrize, title: targetPrize.title, image: targetPrize.image }
+      : winningSlot;
     pendingWinnerSlot = winningSlot;
+    currentWheelSlots = [];
     saveState();
     spinning = false;
     $(".stage").removeClass("spin-active");
     updateStatus();
-    showWinner(targetPrize || winningSlot);
+    showWinner(winnerInfo);
   }
   function spin() {
     if (spinning || totalStock() === 0) return;
     getAudioContext();
 
-    const slots = expandedStockPrizes();
+    if (!currentWheelSlots.length) {
+      currentWheelSlots = expandedStockPrizes();
+    }
+    const slots = currentWheelSlots;
     const count = slots.length;
     if (!count) return;
 
     const segment = 360 / count;
-    const chosenSlot = chooseUniformSlot(slots);
-    const index = slots.findIndex(s => s.slotId === chosenSlot.slotId);
+    const index = Math.floor(Math.random() * count);
+    const chosenSlot = slots[index];
 
     spinning = true;
     spinFinished = false;
