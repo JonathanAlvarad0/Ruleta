@@ -701,15 +701,15 @@ body {
   opacity: 1;
 }
 
-/* Confeti festivo abundante */
+/* Confeti festivo ligero para evitar tirones en Android */
 .confetto {
   position: absolute;
   top: -24px;
   width: 10px;
   height: 18px;
   border-radius: 2px;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.45);
   animation: fall linear forwards;
+  will-change: transform;
 }
 
 @keyframes fall {

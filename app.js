@@ -37,6 +37,20 @@
     $("#config-version").text(state.version);
     document.title = state.brand.name + " · " + state.brand.title;
   }
+  function preloadPrizeImages() {
+    const urls = new Set();
+    if (state.brand && state.brand.logo) urls.add(state.brand.logo);
+    if (Array.isArray(state.prizes)) {
+      state.prizes.forEach(p => {
+        if (p && p.image) urls.add(p.image);
+      });
+    }
+    urls.forEach(src => {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = src;
+    });
+  }
   function expandedStockPrizes() {
     const items = [];
     state.prizes.forEach((prize, prizeIndex) => {
@@ -65,7 +79,6 @@
   function shortSlotLabel(title, count) {
     const clean = String(title || "Premio").trim();
     if (count <= 10) return clean;
-    // Toma las 1-2 palabras clave principales para que quepan sin apuñarse
     const words = clean.split(/\s+/).filter(w => !["de", "la", "el", "los", "las", "y"].includes(w.toLowerCase()));
     if (count >= 20) {
       return (words[0] || clean).slice(0, 10);
@@ -104,7 +117,6 @@
       const slotEl = document.createElement("div");
       slotEl.className = "wheel-slot";
       slotEl.title = `${slot.title} (${Number(slot.stock)} disponibles)`;
-      // Apunta desde el centro hacia el borde exterior a lo largo del centro del gajo
       slotEl.style.transform = `translateY(-50%) rotate(${centerAngle - 90}deg)`;
 
       const trackEl = document.createElement("div");
@@ -134,6 +146,7 @@
 
     wheelEl.appendChild(fragment);
     updateStatus();
+    preloadPrizeImages();
   }
   function chooseUniformSlot(slots) {
     return slots[Math.floor(Math.random() * slots.length)];
@@ -188,7 +201,8 @@
       if (!spinning) return;
       const elapsed = now - startedAt;
       const progress = Math.min(1, elapsed / Math.max(1000, durationMs));
-      const pinIndex = Math.floor(getCurrentWheelAngle() / stepDeg);
+      const angle = getCurrentWheelAngle();
+      const pinIndex = Math.floor(angle / stepDeg);
 
       if (pinIndex !== lastPinIndex) {
         lastPinIndex = pinIndex;
@@ -250,7 +264,6 @@
   // Celebración festiva con tambores, redobles e instrumentos de viento/metal
   function playFunApplauseCelebration(ctx, startAt) {
     try {
-      // Helper para golpes de tambor (bombo grave + redoble)
       function triggerDrumHit(at, isKick, velocity = 0.5) {
         if (isKick) {
           const osc = ctx.createOscillator();
@@ -267,7 +280,6 @@
           osc.start(at);
           osc.stop(at + 0.24);
         } else {
-          // Redoble / tarola festiva (ruido filtrado suave + cuerpo medio)
           const dur = 0.09;
           const len = Math.floor(ctx.sampleRate * dur);
           const buf = ctx.createBuffer(1, len, ctx.sampleRate);
@@ -296,7 +308,6 @@
         }
       }
 
-      // Helper para notas de instrumentos festivos (metal/viento cálido)
       function triggerBrassNote(freq, at, dur, volume = 0.16) {
         const osc1 = ctx.createOscillator();
         const osc2 = ctx.createOscillator();
@@ -309,7 +320,6 @@
         osc2.type = "triangle";
         osc2.frequency.setValueAtTime(freq * 1.003, at);
 
-        // Filtro cálido para que suene a instrumento festivo y no estridente
         filter.type = "lowpass";
         filter.frequency.setValueAtTime(freq * 3.2, at);
         filter.frequency.exponentialRampToValueAtTime(freq * 1.5, at + dur);
@@ -329,7 +339,6 @@
         osc2.stop(at + dur + 0.02);
       }
 
-      // 1) Patrón de tambores de celebración (ritmo alegre tipo comparsa / fiesta)
       const kickTimes = [0.00, 0.45, 0.90, 1.35, 1.75, 2.05, 2.35];
       kickTimes.forEach((t, i) => {
         triggerDrumHit(startAt + t, true, i === kickTimes.length - 1 ? 0.65 : 0.48);
@@ -344,35 +353,25 @@
         triggerDrumHit(startAt + t, false, isRoll ? 0.34 + (i % 3) * 0.06 : 0.28);
       });
 
-      // 2) Melodía festiva de instrumentos (fanfarria alegre con cierre triunfal)
       const fanfareNotes = [
-        { freq: 523.25, at: 0.00, dur: 0.18, vol: 0.14 }, // Do5
-        { freq: 659.25, at: 0.22, dur: 0.18, vol: 0.14 }, // Mi5
-        { freq: 783.99, at: 0.45, dur: 0.20, vol: 0.15 }, // Sol5
-        { freq: 1046.5, at: 0.67, dur: 0.38, vol: 0.17 }, // Do6
-        { freq: 880.00, at: 1.12, dur: 0.18, vol: 0.14 }, // La5
-        { freq: 783.99, at: 1.35, dur: 0.18, vol: 0.14 }, // Sol5
-        { freq: 987.77, at: 1.55, dur: 0.16, vol: 0.15 }, // Si5
-        { freq: 1046.5, at: 1.75, dur: 0.95, vol: 0.20 }  // Do6 brillante final con tambores
+        { freq: 523.25, at: 0.00, dur: 0.18, vol: 0.14 },
+        { freq: 659.25, at: 0.22, dur: 0.18, vol: 0.14 },
+        { freq: 783.99, at: 0.45, dur: 0.20, vol: 0.15 },
+        { freq: 1046.5, at: 0.67, dur: 0.38, vol: 0.17 },
+        { freq: 880.00, at: 1.12, dur: 0.18, vol: 0.14 },
+        { freq: 783.99, at: 1.35, dur: 0.18, vol: 0.14 },
+        { freq: 987.77, at: 1.55, dur: 0.16, vol: 0.15 },
+        { freq: 1046.5, at: 1.75, dur: 0.95, vol: 0.20 }
       ];
 
       fanfareNotes.forEach(n => {
         triggerBrassNote(n.freq, startAt + n.at, n.dur, n.vol);
       });
 
-      // Armonía de acompañamiento en quinta/tercera en el remate final
       triggerBrassNote(523.25, startAt + 1.75, 0.95, 0.12);
       triggerBrassNote(659.25, startAt + 1.75, 0.95, 0.12);
     } catch (e) { /* audio no disponible */ }
   }
-
-  function playWinSound() {
-    if (state.celebration && state.celebration.soundEnabled === false) return;
-    const ctx = getAudioContext();
-    if (!ctx) return;
-    playFunApplauseCelebration(ctx, ctx.currentTime);
-  }
-
   function startSpinSound(durationMs, pinCount) {
     stopSpinSound();
     if (state.celebration && state.celebration.soundEnabled === false) return;
@@ -385,7 +384,12 @@
     }
     stopPointerPinTracker();
   }
-  
+  function playWinSound() {
+    if (state.celebration && state.celebration.soundEnabled === false) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    playFunApplauseCelebration(ctx, ctx.currentTime);
+  }
   function spawnConfettiBatch(count, delayOffsetSec, appendMode) {
     const colors = ["#ffd34f", "#ff2e4c", "#19b86b", "#fff5b0", "#27c7ff", "#ffffff"];
     const box = document.getElementById("confetti");
@@ -420,16 +424,34 @@
     confettiWaveTimers.push(setTimeout(() => $("#confetti").empty(), 5600));
   }
   function showWinner(prize) {
+    const modalEl = document.getElementById("winner-modal");
+    const winImgEl = document.getElementById("winner-image");
+
     $("#modal-brand-logo").attr("src", state.brand.logo);
     $("#winner-title").text(state.labels.winnerTitle);
     $("#winner-lead").text(state.labels.winnerLead);
-    $("#winner-image").attr({ src: prize.image, alt: prize.title });
     $("#winner-prize").text(prize.title);
     $("#modal-continue").text(state.labels.close);
-    $("#winner-modal").prop("hidden", false);
+
+    if (winImgEl) {
+      winImgEl.decoding = "async";
+      winImgEl.alt = prize.title;
+      winImgEl.src = prize.image;
+    }
+
+    if (modalEl) {
+      modalEl.hidden = false;
+    }
+
     launchConfetti();
     playWinSound();
-    $("#modal-continue, #close-modal").trigger("focus");
+
+    requestAnimationFrame(() => {
+      const btn = document.getElementById("modal-continue");
+      if (btn && typeof btn.focus === "function") {
+        try { btn.focus({ preventScroll: true }); } catch (e) { btn.focus(); }
+      }
+    });
   }
   function completeSpin(winningSlot) {
     if (spinFinished) return;
@@ -521,7 +543,7 @@
     const blob = new Blob([output], { type: "application/javascript" }), url = URL.createObjectURL(blob), a = document.createElement("a"); a.href = url; a.download = "config.js"; a.click(); URL.revokeObjectURL(url);
   }
   function init() {
-    fillConfigText(); renderWheel(); applyRoute();
+    fillConfigText(); renderWheel(); applyRoute(); preloadPrizeImages();
     $("#spin-button").on("click", spin);
     $(document).on("keydown", e => { if (e.code === "Space" && !$(e.target).is("input,textarea,button")) { e.preventDefault(); spin(); } });
     $("#modal-continue, #close-modal").on("click", closeWinnerModal);
