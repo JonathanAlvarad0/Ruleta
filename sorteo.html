@@ -1,0 +1,1164 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050d2b">
+  <title>ACAVEN DE R.L. · Sorteo de Números</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            acavenNavy: "#050d2b",
+            acavenDeep: "#091449",
+            acavenBlue: "#147cff",
+            acavenCyan: "#3be0ff",
+            acavenGold: "#ffd24c",
+            acavenGoldLight: "#fff3b0",
+            acavenCrimson: "#d91e36"
+          },
+          keyframes: {
+            glowTension: {
+              "0%, 72%": { opacity: "0.38", transform: "scale(1)" },
+              "82%": { opacity: "0.75", transform: "scale(1.1)" },
+              "90%": { opacity: "0.48", transform: "scale(1.03)" },
+              "100%": { opacity: "0.68", transform: "scale(1.06)" }
+            },
+            logoPulse: {
+              "0%, 100%": {
+                transform: "scale(1)",
+                filter: "drop-shadow(0 0 22px rgba(59,224,255,0.65)) drop-shadow(0 10px 26px rgba(255,210,76,0.42))"
+              },
+              "50%": {
+                transform: "scale(1.04)",
+                filter: "drop-shadow(0 0 34px rgba(255,210,76,0.8)) drop-shadow(0 12px 32px rgba(59,224,255,0.85))"
+              }
+            },
+            fall: {
+              to: {
+                transform: "translate3d(var(--x), 110vh, 0) rotate(900deg)"
+              }
+            }
+          },
+          animation: {
+            glowTension: "glowTension 10s ease-in-out both",
+            logoPulse: "logoPulse 3.2s ease-in-out infinite",
+            fall: "fall linear forwards"
+          }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    /* Estilos específicos del sorteo numérico integrados sobre el diseño base del proyecto */
+    .wheel-slot-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: rgba(5, 16, 56, 0.78);
+      border: 1px solid rgba(255, 243, 176, 0.72);
+      color: #fff3b0;
+      font-weight: 900;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .draw-panel {
+      box-shadow:
+        0 0 30px rgba(20, 124, 255, 0.25),
+        0 18px 42px rgba(0, 0, 0, 0.65),
+        inset 0 0 24px rgba(59, 224, 255, 0.08);
+    }
+
+    .draw-input {
+      background: rgba(5, 17, 48, 0.92);
+      border: 1px solid rgba(92, 182, 255, 0.38);
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-weight: 700;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .draw-input:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(255, 210, 76, 0.22);
+    }
+
+    .drawn-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(20, 124, 255, 0.28), rgba(9, 20, 73, 0.92));
+      border: 1px solid rgba(255, 210, 76, 0.65);
+      box-shadow: 0 0 14px rgba(255, 210, 76, 0.22);
+      font-weight: 900;
+      color: #fff3b0;
+      line-height: 1;
+    }
+
+    .drawn-pill-latest {
+      background: linear-gradient(135deg, #fff3b0, #ffd24c 55%, #d88b12);
+      border-color: #ffffff;
+      color: #050d2b;
+      box-shadow: 0 0 20px rgba(255, 210, 76, 0.75);
+      transform: scale(1.04);
+    }
+
+    .drawn-pill small {
+      font-size: 10px;
+      opacity: 0.82;
+      font-weight: 800;
+    }
+
+    .winner-number-showcase {
+      background: radial-gradient(circle at center, rgba(255, 210, 76, 0.24) 0%, rgba(5, 16, 56, 0.85) 72%);
+      border: 2px solid rgba(255, 210, 76, 0.72);
+      box-shadow:
+        0 0 32px rgba(255, 210, 76, 0.35),
+        inset 0 0 20px rgba(59, 224, 255, 0.18);
+    }
+
+    .winner-number-value {
+      background: linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #fff6bd 28%,
+        #ffd24c 62%,
+        #e08e10 100%
+      );
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter:
+        drop-shadow(0 4px 0 #5b3404)
+        drop-shadow(0 0 24px rgba(255, 210, 76, 0.6));
+    }
+
+    @media (max-width: 700px) {
+      .wheel-slot-track {
+        gap: 3px;
+        max-width: calc(100% - 18vw);
+      }
+    }
+
+    @media (max-width: 420px) {
+      .wheel-slot-track {
+        gap: 2px;
+        max-width: calc(100% - 20vw);
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen overflow-x-hidden text-slate-50 antialiased selection:bg-acavenGold selection:text-acavenNavy">
+  <!-- Decoración navideña de fondo: auroras, marca de agua, nieve cayendo y guirnalda -->
+  <div class="aurora aurora-one" aria-hidden="true"></div>
+  <div class="aurora aurora-two" aria-hidden="true"></div>
+  <div class="aurora aurora-three" aria-hidden="true"></div>
+  <img id="brand-watermark" class="brand-watermark" alt="" aria-hidden="true">
+  <div class="snow-layer snow-back" aria-hidden="true"></div>
+  <div class="snow-layer snow-front" aria-hidden="true"></div>
+  <div class="holiday-garland" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span>
+  </div>
+
+  <!-- VISTA PÚBLICA DEL SORTEO NUMÉRICO -->
+  <main id="public-view" class="app-shell relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col items-center px-4 pt-6 pb-6 sm:px-6 sm:pt-8">
+    <header class="hero-header relative w-full text-center">
+      <div class="season-chip inline-flex items-center justify-center gap-3 rounded-full border border-acavenGold/55 bg-acavenDeep/80 px-5 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.22em] text-acavenGoldLight shadow-[0_0_24px_rgba(255,210,76,0.25),inset_0_0_16px_rgba(59,224,255,0.14)] backdrop-blur-md">
+        <span class="chip-star text-base text-acavenGold">✦</span>
+        <span id="draw-eyebrow"></span>
+        <span class="chip-star text-base text-acavenGold">✦</span>
+      </div>
+
+      <!-- Logo protagonista grande con halo comercial festivo -->
+      <div class="logo-spotlight relative mx-auto mt-2 mb-1 flex items-center justify-center">
+        <img
+          id="brand-logo"
+          class="brand-logo animate-logoPulse relative z-10 block object-contain"
+          alt="Logo ACAVEN DE R.L."
+        >
+      </div>
+
+      <h1
+        id="draw-title"
+        class="tv-title mx-auto max-w-4xl font-black uppercase leading-[0.95] tracking-[0.03em] text-[clamp(2.25rem,5.8vw,4.35rem)]"
+      ></h1>
+
+      <p
+        id="draw-subtitle"
+        class="mx-auto mt-3 max-w-2xl text-sm font-semibold tracking-[0.07em] text-sky-100 drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] sm:text-lg"
+      ></p>
+    </header>
+
+    <!-- CONFIGURACIÓN DEL RANGO Y TOP DE INTENTOS -->
+    <section
+      class="draw-panel mt-5 w-full max-w-4xl rounded-2xl border border-acavenGold/45 bg-acavenDeep/85 p-4 backdrop-blur-md sm:p-5"
+      aria-label="Configuración del rango y top del sorteo"
+    >
+      <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4 lg:items-end">
+        <div>
+          <label for="range-min" class="mb-1.5 block text-[11px] font-extrabold uppercase tracking-[0.14em] text-acavenCyan">
+            Número inicial
+          </label>
+          <input id="range-min" type="number" class="draw-input w-full text-sm" value="1">
+        </div>
+
+        <div>
+          <label for="range-max" class="mb-1.5 block text-[11px] font-extrabold uppercase tracking-[0.14em] text-acavenCyan">
+            Número final
+          </label>
+          <input id="range-max" type="number" class="draw-input w-full text-sm" value="150">
+        </div>
+
+        <div>
+          <label for="top-count" class="mb-1.5 block text-[11px] font-extrabold uppercase tracking-[0.14em] text-acavenGoldLight">
+            Top de números (intentos)
+          </label>
+          <input id="top-count" type="number" min="1" class="draw-input w-full text-sm" value="10">
+        </div>
+
+        <div class="flex gap-2">
+          <button
+            id="apply-draw-config"
+            type="button"
+            class="w-full cursor-pointer rounded-xl bg-gradient-to-br from-acavenGoldLight via-acavenGold to-amber-500 px-4 py-2.5 text-xs font-black uppercase tracking-wider text-acavenNavy shadow-[0_0_20px_rgba(255,210,76,0.35)] transition hover:-translate-y-0.5 hover:brightness-105"
+          >
+            Aplicar / Reiniciar
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-sky-400/20 pt-3 text-xs text-sky-200/85">
+        <div id="draw-summary" class="font-semibold"></div>
+        <button
+          id="reset-draw-session"
+          type="button"
+          class="cursor-pointer rounded-lg border border-acavenCyan/50 bg-acavenNavy/70 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-acavenCyan transition hover:border-acavenGold hover:text-acavenGoldLight"
+        >
+          Reiniciar sorteo actual
+        </button>
+      </div>
+    </section>
+
+    <!-- ESCENARIO PRINCIPAL DE LA RULETA -->
+    <section class="stage relative mx-auto flex items-center justify-center" aria-label="Ruleta numérica">
+      <div class="stage-glow"></div>
+
+      <!-- Indicador superior dorado con pines -->
+      <div class="pointer" aria-hidden="true"><span></span></div>
+
+      <!-- Aro luminoso + ruleta -->
+      <div class="wheel-frame">
+        <div id="wheel" class="wheel" role="img" aria-label="Ruleta numérica de sorteo"></div>
+        <div class="wheel-rim rim-inner"></div>
+        <div class="wheel-bulbs" aria-hidden="true"></div>
+
+        <button
+          id="spin-button"
+          class="spin-button group transition-transform duration-200 active:translate-x-[-50%] active:translate-y-[-48%] active:scale-95"
+          type="button"
+          aria-label="Girar ruleta"
+        >
+          <span class="spin-button-star">✦</span>
+          <span id="spin-label">GIRAR</span>
+          <small>NÚMEROS</small>
+        </button>
+      </div>
+
+      <!-- Pedestal luminoso inferior -->
+      <div class="pedestal" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+    </section>
+
+    <!-- CONTADOR DE INTENTOS / NÚMEROS RESTANTES -->
+    <section
+      class="status-card mt-2 flex flex-wrap items-center justify-center gap-4 rounded-full border border-acavenGold/60 bg-acavenDeep/85 px-6 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-white backdrop-blur-md sm:gap-5 sm:px-8 sm:py-3 sm:text-sm"
+      aria-live="polite"
+    >
+      <span class="status-icon text-lg text-acavenGold">✦</span>
+      <span class="text-sky-100">Intento</span>
+      <strong id="attempt-progress" class="text-xl font-black tracking-normal text-acavenCyan sm:text-2xl">0 / 10</strong>
+      <span class="text-acavenGold/60">•</span>
+      <strong id="remaining-count" class="text-2xl font-black tracking-normal text-acavenGold sm:text-3xl">10</strong>
+      <span id="remaining-label" class="text-sky-100">intentos restantes</span>
+      <span class="status-icon text-lg text-acavenGold">✦</span>
+    </section>
+
+    <!-- LISTA EN VIVO DE NÚMEROS QUE VAN SALIENDO -->
+    <section
+      class="draw-panel mt-6 w-full max-w-4xl rounded-2xl border border-acavenGold/50 bg-acavenDeep/85 p-5 backdrop-blur-md sm:p-6"
+      aria-live="polite"
+      aria-label="Números sorteados"
+    >
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-sky-400/20 pb-3.5">
+        <div>
+          <span class="block text-[11px] font-extrabold uppercase tracking-[0.16em] text-acavenCyan">
+            RESULTADOS DEL SORTEO
+          </span>
+          <h2 class="mt-0.5 text-lg font-black uppercase tracking-wide text-white sm:text-xl">
+            Números ganadores
+          </h2>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span id="draw-status-badge" class="rounded-full border border-acavenGold/50 bg-acavenNavy/90 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-acavenGoldLight">
+            En curso
+          </span>
+          <button
+            id="copy-numbers-btn"
+            type="button"
+            class="cursor-pointer rounded-xl bg-sky-100 px-3.5 py-2 text-[11px] font-extrabold uppercase tracking-wider text-acavenNavy transition hover:-translate-y-0.5 hover:bg-white"
+          >
+            Copiar lista
+          </button>
+        </div>
+      </div>
+
+      <div id="drawn-numbers-list" class="mt-4 flex min-h-[58px] flex-wrap items-center gap-2.5">
+        <p id="empty-drawn-hint" class="m-0 text-sm italic text-sky-200/75">
+          Aún no ha salido ningún número. Pulsa <strong>GIRAR</strong> o la tecla <strong>Espacio</strong> para iniciar el sorteo.
+        </p>
+      </div>
+    </section>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="public-footer mt-auto flex flex-col items-center gap-2 pt-7 text-center text-[11px] tracking-[0.05em] text-sky-200/80 sm:flex-row sm:gap-4">
+      <span id="draw-footer"></span>
+      <a
+        href="index.html"
+        class="border-b border-acavenCyan/80 pb-0.5 font-semibold text-acavenCyan transition hover:border-acavenGold hover:text-acavenGold"
+      >
+        Ir a Ruleta de Premios
+      </a>
+    </footer>
+  </main>
+
+  <!-- MODAL DE NÚMERO GANADOR (SIN IMÁGENES DE PREMIO, SOLO EL NÚMERO) -->
+  <div id="winner-modal" class="modal-backdrop fixed inset-0 z-40 grid place-items-center bg-slate-950/85 p-5 backdrop-blur-md" hidden>
+    <div class="winner-modal relative w-full max-w-md rounded-3xl border-2 border-acavenGold bg-gradient-to-b from-sky-800/95 via-acavenDeep to-acavenNavy px-6 pt-24 pb-7 text-center shadow-[0_0_60px_rgba(20,124,255,0.55),0_0_30px_rgba(255,210,76,0.28),0_20px_60px_rgba(0,0,0,0.9)] sm:px-8 sm:pt-28" role="dialog" aria-modal="true" aria-labelledby="winner-title">
+      <button
+        id="close-modal"
+        class="modal-close absolute top-3 right-4 cursor-pointer border-0 bg-transparent text-3xl leading-none text-sky-200 transition hover:scale-110 hover:text-acavenGold"
+        type="button"
+        aria-label="Cerrar"
+      >&times;</button>
+
+      <!-- Logo en círculo encima del modal con tamaño equilibrado -->
+      <div class="modal-avatar-ring" aria-hidden="false">
+        <img id="modal-brand-logo" class="modal-brand-logo" alt="Logo ACAVEN DE R.L.">
+      </div>
+
+      <h2 id="winner-title" class="mt-1 mb-1 text-3xl font-black uppercase tracking-wide text-acavenGoldLight drop-shadow-[0_3px_12px_rgba(0,0,0,0.65)] sm:text-4xl">
+        ¡Número Ganador!
+      </h2>
+      <p id="winner-lead" class="m-0 text-sm font-semibold uppercase tracking-widest text-sky-200">
+        Intento #1 seleccionado
+      </p>
+
+      <div class="winner-number-showcase mx-auto mt-4 mb-3 flex min-h-[126px] w-full max-w-[240px] flex-col items-center justify-center rounded-2xl px-4 py-3">
+        <span id="winner-number-badge" class="text-[11px] font-extrabold uppercase tracking-[0.2em] text-acavenCyan">
+          TOP #1
+        </span>
+        <div
+          id="winner-number"
+          class="winner-number-value mt-0.5 text-6xl font-black leading-none tracking-tight sm:text-7xl"
+        >
+          0
+        </div>
+      </div>
+
+      <p id="winner-subinfo" class="mt-1 mb-6 text-xs font-semibold tracking-wide text-sky-200/90"></p>
+
+      <button
+        id="modal-continue"
+        class="primary-button w-full cursor-pointer rounded-xl bg-gradient-to-br from-acavenGoldLight via-acavenGold to-amber-500 px-6 py-3 text-sm font-black uppercase tracking-widest text-acavenNavy shadow-[0_0_24px_rgba(255,210,76,0.4)] transition hover:scale-[1.02] hover:brightness-105"
+        type="button"
+      >
+        Continuar
+      </button>
+    </div>
+  </div>
+
+  <!-- MENSAJE FLOTANTE -->
+  <p id="toast-message" class="maintenance-message fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-full border border-acavenGold/60 bg-acavenGoldLight px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider text-acavenNavy opacity-0 shadow-2xl transition-opacity duration-200" role="status"></p>
+
+  <!-- CONFETI -->
+  <div id="confetti" class="pointer-events-none fixed inset-0 z-50 overflow-hidden" aria-hidden="true"></div>
+
+  <script src="lib/jquery-3.7.1.min.js"></script>
+  <script src="config.js"></script>
+  <script>
+    (function ($) {
+      "use strict";
+
+      const projectCfg = window.ACAVEN_CONFIG || {};
+      const brandCfg = projectCfg.brand || {};
+      const celebrationCfg = projectCfg.celebration || {};
+
+      const BRAND_NAME = brandCfg.name || "ACAVEN DE R.L.";
+      const BRAND_LOGO = brandCfg.logo || "img/logo.png";
+      const BRAND_FOOTER = brandCfg.footer || "UNA EXPERIENCIA ESPECIAL DE NUESTRA GRAN FAMILIA ACAVEN DE R.L";
+      const SPIN_DURATION_MS = Number(celebrationCfg.spinDurationMs) || 10000;
+      const CONFETTI_PIECES = Number(celebrationCfg.confettiPieces) || 280;
+      const SOUND_ENABLED = celebrationCfg.soundEnabled !== false;
+
+      const STORAGE_KEY = (projectCfg.storageKey || "acaven_ruleta_estado") + "_sorteo_numeros_v1";
+
+      const DEFAULT_DRAW_CONFIG = {
+        rangeMin: 1,
+        rangeMax: 150,
+        topCount: 10
+      };
+
+      function buildRangeNumbers(minVal, maxVal) {
+        const start = Math.min(minVal, maxVal);
+        const end = Math.max(minVal, maxVal);
+        const list = [];
+        for (let n = start; n <= end; n++) {
+          list.push(n);
+        }
+        return list;
+      }
+
+      function createFreshState(rangeMin, rangeMax, topCount) {
+        const cleanMin = Math.trunc(Number(rangeMin));
+        const cleanMax = Math.trunc(Number(rangeMax));
+        const safeMin = Number.isFinite(cleanMin) ? cleanMin : DEFAULT_DRAW_CONFIG.rangeMin;
+        const safeMax = Number.isFinite(cleanMax) ? cleanMax : DEFAULT_DRAW_CONFIG.rangeMax;
+        const allNumbers = buildRangeNumbers(safeMin, safeMax);
+        const rawTop = Math.trunc(Number(topCount));
+        const safeTop = Math.max(1, Math.min(allNumbers.length, Number.isFinite(rawTop) ? rawTop : DEFAULT_DRAW_CONFIG.topCount));
+
+        return {
+          rangeMin: Math.min(safeMin, safeMax),
+          rangeMax: Math.max(safeMin, safeMax),
+          topCount: safeTop,
+          availableNumbers: allNumbers,
+          drawnNumbers: []
+        };
+      }
+
+      function loadState() {
+        try {
+          const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (
+            raw &&
+            Number.isFinite(Number(raw.rangeMin)) &&
+            Number.isFinite(Number(raw.rangeMax)) &&
+            Number.isFinite(Number(raw.topCount)) &&
+            Array.isArray(raw.availableNumbers) &&
+            Array.isArray(raw.drawnNumbers)
+          ) {
+            return {
+              rangeMin: Math.trunc(Number(raw.rangeMin)),
+              rangeMax: Math.trunc(Number(raw.rangeMax)),
+              topCount: Math.max(1, Math.trunc(Number(raw.topCount))),
+              availableNumbers: raw.availableNumbers.map(Number).filter(Number.isFinite),
+              drawnNumbers: raw.drawnNumbers.map(Number).filter(Number.isFinite)
+            };
+          }
+        } catch (e) {
+          /* fallback a estado limpio */
+        }
+        return createFreshState(DEFAULT_DRAW_CONFIG.rangeMin, DEFAULT_DRAW_CONFIG.rangeMax, DEFAULT_DRAW_CONFIG.topCount);
+      }
+
+      let state = loadState();
+      let spinning = false;
+      let currentRotation = 0;
+      let pointerRafId = null;
+      let lastPinIndex = null;
+      let confettiWaveTimers = [];
+      let spinFinishTimer = null;
+      let spinFinished = false;
+      let pendingWheelRefresh = false;
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+          /* ignorar si storage está bloqueado */
+        }
+      }
+
+      function fillProjectBrand() {
+        $("#brand-logo").attr("src", BRAND_LOGO).attr("alt", "Logo " + BRAND_NAME);
+        $("#brand-watermark").attr("src", BRAND_LOGO);
+        $("#modal-brand-logo").attr("src", BRAND_LOGO).attr("alt", "Logo " + BRAND_NAME);
+        $("#draw-eyebrow").text(BRAND_NAME + " · Sorteo Numérico");
+        $("#draw-title").text("SORTEO ACAVEN");
+        $("#draw-subtitle").text("");
+        $("#draw-footer").text(BRAND_FOOTER);
+        document.title = BRAND_NAME + " · Sorteo de Números";
+      }
+
+      function remainingAttempts() {
+        const target = Math.min(state.topCount, state.availableNumbers.length + state.drawnNumbers.length);
+        return Math.max(0, target - state.drawnNumbers.length);
+      }
+
+      function maxAttemptsForSession() {
+        return Math.min(state.topCount, state.availableNumbers.length + state.drawnNumbers.length);
+      }
+
+      function showToast(msg) {
+        const $el = $("#toast-message");
+        $el.text(msg).addClass("show");
+        clearTimeout(showToast._timer);
+        showToast._timer = setTimeout(() => $el.removeClass("show"), 2000);
+      }
+
+      function syncInputsFromState() {
+        $("#range-min").val(state.rangeMin);
+        $("#range-max").val(state.rangeMax);
+        $("#top-count").val(state.topCount);
+      }
+
+      function updateStatusAndList() {
+        const totalTarget = maxAttemptsForSession();
+        const drawnCount = state.drawnNumbers.length;
+        const left = remainingAttempts();
+        const isFinished = left === 0 || state.availableNumbers.length === 0;
+
+        $("#draw-summary").html(
+          `Rango: <strong class="text-white">${state.rangeMin} – ${state.rangeMax}</strong> · ` +
+          `Top objetivo: <strong class="text-acavenGold">${totalTarget}</strong> números · ` +
+          `Disponibles en bombo: <strong class="text-acavenCyan">${state.availableNumbers.length}</strong>`
+        );
+
+        $("#attempt-progress").text(`${drawnCount} / ${totalTarget}`);
+        $("#remaining-count").text(left);
+        $("#remaining-label").text(left === 1 ? "intento restante" : "intentos restantes");
+        $("#spin-button").prop("disabled", spinning || isFinished);
+
+        if (isFinished) {
+          $("#spin-label").text("COMPLETO");
+          $("#draw-status-badge")
+            .text("Sorteo finalizado")
+            .removeClass("text-acavenGoldLight border-acavenGold/50")
+            .addClass("text-emerald-300 border-emerald-400/60 bg-emerald-950/70");
+        } else {
+          $("#spin-label").text("GIRAR");
+          $("#draw-status-badge")
+            .text("En curso")
+            .removeClass("text-emerald-300 border-emerald-400/60 bg-emerald-950/70")
+            .addClass("text-acavenGoldLight border-acavenGold/50");
+        }
+
+        const $list = $("#drawn-numbers-list").empty();
+        if (!state.drawnNumbers.length) {
+          $list.append(
+            $("<p>", {
+              id: "empty-drawn-hint",
+              class: "m-0 text-sm italic text-sky-200/75"
+            }).html(
+              `Aún no ha salido ningún número. Pulsa <strong>GIRAR</strong> o la tecla <strong>Espacio</strong> para iniciar el sorteo.`
+            )
+          );
+          return;
+        }
+
+        state.drawnNumbers.forEach((num, idx) => {
+          const isLatest = idx === state.drawnNumbers.length - 1;
+          const $pill = $("<div>", {
+            class: "drawn-pill text-base sm:text-lg" + (isLatest ? " drawn-pill-latest" : ""),
+            title: `Posición #${idx + 1}: Número ${num}`
+          });
+          $pill.append($("<small>").text(`#${idx + 1}`));
+          $pill.append($("<span>").text(num));
+          $list.append($pill);
+        });
+      }
+
+      /* Muestra equilibrada de gajos visibles cuando el rango es amplio (ej. 150 números) */
+      function getVisibleWheelNumbers() {
+        const pool = state.availableNumbers;
+        const count = pool.length;
+        if (!count) return [];
+        const maxVisualSlices = window.innerWidth <= 640 ? 36 : 60;
+        if (count <= maxVisualSlices) {
+          return pool.map((num, realIndex) => ({ num, realIndex }));
+        }
+        const sampled = [];
+        for (let i = 0; i < maxVisualSlices; i++) {
+          const realIndex = Math.min(count - 1, Math.floor((i * count) / maxVisualSlices));
+          sampled.push({ num: pool[realIndex], realIndex });
+        }
+        return sampled;
+      }
+
+      function renderWheel() {
+        const wheelEl = document.getElementById("wheel");
+        if (!wheelEl) return;
+        wheelEl.innerHTML = "";
+
+        const visibleItems = getVisibleWheelNumbers();
+        const count = visibleItems.length;
+
+        if (!count) {
+          wheelEl.style.background = "radial-gradient(circle,#174d99,#06194d)";
+          updateStatusAndList();
+          return;
+        }
+
+        const palette = ["#126edc", "#093b9c", "#1595e8", "#2553c5", "#0d6bb5", "#1b2e91"];
+        const accents = ["#36c7ff", "#ffd86b", "#73e5ff", "#93c5fd", "#67e8f9", "#fde047"];
+        const segment = 360 / count;
+
+        const stops = visibleItems.map((_, i) => {
+          const fill = i % 2 === 0 ? palette[i % palette.length] : accents[i % accents.length];
+          return `${fill} ${i * segment}deg ${(i + 1) * segment}deg`;
+        }).join(",");
+
+        wheelEl.style.background = `conic-gradient(${stops})`;
+
+        const isMobile = window.innerWidth <= 640;
+        const fontSize = count >= 40 ? (isMobile ? 7.5 : 9.5) : count >= 22 ? (isMobile ? 9 : 11) : (isMobile ? 11.5 : 14);
+        const badgeSize = count >= 40 ? (isMobile ? 13 : 16) : (isMobile ? 16 : 20);
+        const radialOffset = isMobile ? "17vw" : "124px";
+
+        const fragment = document.createDocumentFragment();
+        visibleItems.forEach((entry, i) => {
+          const centerAngle = i * segment + segment / 2;
+          const slotEl = document.createElement("div");
+          slotEl.className = "wheel-slot";
+          slotEl.title = `Número ${entry.num}`;
+          slotEl.style.transform = `translateY(-50%) rotate(${centerAngle - 90}deg)`;
+
+          const trackEl = document.createElement("div");
+          trackEl.className = "wheel-slot-track";
+          trackEl.style.left = radialOffset;
+
+          const labelEl = document.createElement("span");
+          labelEl.className = "wheel-slot-label";
+          labelEl.textContent = String(entry.num);
+          labelEl.style.fontSize = `${fontSize}px`;
+
+          const badgeEl = document.createElement("span");
+          badgeEl.className = "wheel-slot-badge";
+          badgeEl.textContent = "Nº";
+          badgeEl.style.width = `${badgeSize}px`;
+          badgeEl.style.height = `${badgeSize}px`;
+          badgeEl.style.fontSize = `${Math.max(7, fontSize - 2)}px`;
+
+          trackEl.appendChild(labelEl);
+          trackEl.appendChild(badgeEl);
+          slotEl.appendChild(trackEl);
+          fragment.appendChild(slotEl);
+        });
+
+        wheelEl.appendChild(fragment);
+        updateStatusAndList();
+      }
+
+      /* Audio festivo del proyecto */
+      function getAudioContext() {
+        if (!SOUND_ENABLED) return null;
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return null;
+          if (!window.__acavenSorteoAudioCtx) {
+            window.__acavenSorteoAudioCtx = new AudioCtx();
+          }
+          if (window.__acavenSorteoAudioCtx.state === "suspended") {
+            window.__acavenSorteoAudioCtx.resume().catch(() => {});
+          }
+          return window.__acavenSorteoAudioCtx;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function getCurrentWheelAngle() {
+        const wheelEl = document.getElementById("wheel");
+        if (!wheelEl) return currentRotation;
+        const transform = window.getComputedStyle(wheelEl).transform;
+        if (!transform || transform === "none") return currentRotation;
+        const match = transform.match(/matrix(?:3d)?\(([^)]+)\)/);
+        if (!match) return currentRotation;
+        const parts = match[1].split(",").map(Number);
+        const rad = Math.atan2(parts[1], parts[0]);
+        return ((((rad * 180) / Math.PI) % 360) + 360) % 360;
+      }
+
+      function triggerPinRub(isSlowPhase) {
+        const pointerEl = document.querySelector(".pointer");
+        if (!pointerEl) return;
+        pointerEl.classList.remove("pin-hit", "pin-slow");
+        void pointerEl.offsetWidth;
+        pointerEl.classList.add("pin-hit");
+        if (isSlowPhase) {
+          pointerEl.classList.add("pin-slow");
+        }
+      }
+
+      function playTickSound(progress, isSuspense) {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        try {
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const clickOsc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const clickGain = ctx.createGain();
+
+          const baseFreq = isSuspense ? 1140 : 860 + (1 - progress) * 320;
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(baseFreq, now);
+          osc.frequency.exponentialRampToValueAtTime(260, now + 0.055);
+
+          const volume = isSuspense ? 0.32 : 0.22;
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.exponentialRampToValueAtTime(volume, now + 0.005);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+
+          clickOsc.type = "triangle";
+          clickOsc.frequency.setValueAtTime(2200, now);
+          clickOsc.frequency.exponentialRampToValueAtTime(520, now + 0.025);
+          clickGain.gain.setValueAtTime(0.001, now);
+          clickGain.gain.exponentialRampToValueAtTime(volume * 0.85, now + 0.003);
+          clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.028);
+
+          osc.connect(gain).connect(ctx.destination);
+          clickOsc.connect(clickGain).connect(ctx.destination);
+
+          osc.start(now);
+          osc.stop(now + 0.065);
+          clickOsc.start(now);
+          clickOsc.stop(now + 0.032);
+        } catch (e) { /* audio no disponible */ }
+      }
+
+      function startPointerPinTracker(durationMs, pinCount) {
+        stopPointerPinTracker();
+        const startedAt = performance.now();
+        const stepDeg = 360 / Math.max(4, pinCount);
+        lastPinIndex = Math.floor(getCurrentWheelAngle() / stepDeg);
+
+        triggerPinRub(false);
+        playTickSound(0, false);
+
+        function track(now) {
+          if (!spinning) return;
+          const elapsed = now - startedAt;
+          const progress = Math.min(1, elapsed / Math.max(1000, durationMs));
+          const angle = getCurrentWheelAngle();
+          const pinIndex = Math.floor(angle / stepDeg);
+
+          if (pinIndex !== lastPinIndex) {
+            lastPinIndex = pinIndex;
+            const isSlowPhase = progress > 0.72;
+            triggerPinRub(isSlowPhase);
+            playTickSound(progress, isSlowPhase);
+          }
+
+          if (progress < 1 && spinning) {
+            pointerRafId = requestAnimationFrame(track);
+          }
+        }
+
+        pointerRafId = requestAnimationFrame(track);
+      }
+
+      function stopPointerPinTracker() {
+        if (pointerRafId) {
+          cancelAnimationFrame(pointerRafId);
+          pointerRafId = null;
+        }
+        document.querySelector(".pointer")?.classList.remove("pin-hit", "pin-slow");
+      }
+
+      function playFunApplauseCelebration(ctx, startAt) {
+        try {
+          function triggerDrumHit(at, isKick, velocity = 0.5) {
+            if (isKick) {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = "sine";
+              osc.frequency.setValueAtTime(145, at);
+              osc.frequency.exponentialRampToValueAtTime(44, at + 0.18);
+
+              gain.gain.setValueAtTime(0.001, at);
+              gain.gain.linearRampToValueAtTime(velocity, at + 0.008);
+              gain.gain.exponentialRampToValueAtTime(0.001, at + 0.22);
+
+              osc.connect(gain).connect(ctx.destination);
+              osc.start(at);
+              osc.stop(at + 0.24);
+            } else {
+              const dur = 0.09;
+              const len = Math.floor(ctx.sampleRate * dur);
+              const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+              const ch = buf.getChannelData(0);
+              for (let i = 0; i < len; i++) {
+                const env = Math.pow(1 - i / len, 2.2);
+                ch[i] = (Math.random() * 2 - 1) * env;
+              }
+
+              const src = ctx.createBufferSource();
+              src.buffer = buf;
+
+              const bodyFilter = ctx.createBiquadFilter();
+              bodyFilter.type = "bandpass";
+              bodyFilter.frequency.setValueAtTime(780, at);
+              bodyFilter.Q.setValueAtTime(0.9, at);
+
+              const gain = ctx.createGain();
+              gain.gain.setValueAtTime(0.001, at);
+              gain.gain.linearRampToValueAtTime(velocity * 0.55, at + 0.004);
+              gain.gain.exponentialRampToValueAtTime(0.001, at + dur);
+
+              src.connect(bodyFilter).connect(gain).connect(ctx.destination);
+              src.start(at);
+              src.stop(at + dur + 0.01);
+            }
+          }
+
+          function triggerBrassNote(freq, at, dur, volume = 0.16) {
+            const osc1 = ctx.createOscillator();
+            const osc2 = ctx.createOscillator();
+            const filter = ctx.createBiquadFilter();
+            const gain = ctx.createGain();
+
+            osc1.type = "sawtooth";
+            osc1.frequency.setValueAtTime(freq, at);
+
+            osc2.type = "triangle";
+            osc2.frequency.setValueAtTime(freq * 1.003, at);
+
+            filter.type = "lowpass";
+            filter.frequency.setValueAtTime(freq * 3.2, at);
+            filter.frequency.exponentialRampToValueAtTime(freq * 1.5, at + dur);
+
+            gain.gain.setValueAtTime(0.001, at);
+            gain.gain.linearRampToValueAtTime(volume, at + 0.02);
+            gain.gain.setValueAtTime(volume * 0.85, at + Math.max(0.03, dur - 0.06));
+            gain.gain.exponentialRampToValueAtTime(0.001, at + dur);
+
+            osc1.connect(filter);
+            osc2.connect(filter);
+            filter.connect(gain).connect(ctx.destination);
+
+            osc1.start(at);
+            osc2.start(at);
+            osc1.stop(at + dur + 0.02);
+            osc2.stop(at + dur + 0.02);
+          }
+
+          const kickTimes = [0.00, 0.45, 0.90, 1.35, 1.75, 2.05, 2.35];
+          kickTimes.forEach((t, i) => {
+            triggerDrumHit(startAt + t, true, i === kickTimes.length - 1 ? 0.65 : 0.48);
+          });
+
+          const snareTimes = [
+            0.22, 0.67, 1.12, 1.55,
+            1.75, 1.85, 1.95, 2.15, 2.25, 2.45, 2.55, 2.65
+          ];
+          snareTimes.forEach((t, i) => {
+            const isRoll = t >= 1.75;
+            triggerDrumHit(startAt + t, false, isRoll ? 0.34 + (i % 3) * 0.06 : 0.28);
+          });
+
+          const fanfareNotes = [
+            { freq: 523.25, at: 0.00, dur: 0.18, vol: 0.14 },
+            { freq: 659.25, at: 0.22, dur: 0.18, vol: 0.14 },
+            { freq: 783.99, at: 0.45, dur: 0.20, vol: 0.15 },
+            { freq: 1046.5, at: 0.67, dur: 0.38, vol: 0.17 },
+            { freq: 880.00, at: 1.12, dur: 0.18, vol: 0.14 },
+            { freq: 783.99, at: 1.35, dur: 0.18, vol: 0.14 },
+            { freq: 987.77, at: 1.55, dur: 0.16, vol: 0.15 },
+            { freq: 1046.5, at: 1.75, dur: 0.95, vol: 0.20 }
+          ];
+
+          fanfareNotes.forEach(n => {
+            triggerBrassNote(n.freq, startAt + n.at, n.dur, n.vol);
+          });
+
+          triggerBrassNote(523.25, startAt + 1.75, 0.95, 0.12);
+          triggerBrassNote(659.25, startAt + 1.75, 0.95, 0.12);
+        } catch (e) { /* audio no disponible */ }
+      }
+
+      function playWinSound() {
+        if (!SOUND_ENABLED) return;
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        playFunApplauseCelebration(ctx, ctx.currentTime);
+      }
+
+      function spawnConfettiBatch(count, delayOffsetSec, appendMode) {
+        const colors = ["#ffd34f", "#ff2e4c", "#19b86b", "#fff5b0", "#27c7ff", "#ffffff"];
+        const box = document.getElementById("confetti");
+        if (!box) return;
+        if (!appendMode) box.innerHTML = "";
+
+        const fragment = document.createDocumentFragment();
+        for (let i = 0; i < count; i++) {
+          const sizeW = 7 + Math.random() * 8;
+          const sizeH = 12 + Math.random() * 13;
+          const el = document.createElement("i");
+          el.className = "confetto";
+          el.style.left = `${Math.random() * 100}%`;
+          el.style.width = `${sizeW}px`;
+          el.style.height = `${sizeH}px`;
+          el.style.background = colors[i % colors.length];
+          el.style.setProperty("--x", `${(Math.random() - 0.5) * 320}px`);
+          el.style.animationDuration = `${2.1 + Math.random() * 2.4}s`;
+          el.style.animationDelay = `${delayOffsetSec + Math.random() * 0.65}s`;
+          fragment.appendChild(el);
+        }
+        box.appendChild(fragment);
+      }
+
+      function launchConfetti() {
+        confettiWaveTimers.forEach(t => clearTimeout(t));
+        confettiWaveTimers = [];
+        const isSmall = window.innerWidth <= 768;
+        const baseCount = isSmall ? Math.min(95, CONFETTI_PIECES) : Math.min(220, CONFETTI_PIECES);
+        spawnConfettiBatch(baseCount, 0, false);
+        confettiWaveTimers.push(setTimeout(() => spawnConfettiBatch(Math.round(baseCount * 0.6), 0, true), 650));
+        confettiWaveTimers.push(setTimeout(() => $("#confetti").empty(), 5600));
+      }
+
+      function showWinnerModal(winningNumber, attemptIndex, totalTarget, leftAfter) {
+        const modalEl = document.getElementById("winner-modal");
+        $("#modal-brand-logo").attr("src", BRAND_LOGO);
+        $("#winner-title").text("¡Número Ganador!");
+        $("#winner-lead").text(`Intento #${attemptIndex} de ${totalTarget}`);
+        $("#winner-number-badge").text(`TOP #${attemptIndex}`);
+        $("#winner-number").text(String(winningNumber));
+
+        if (leftAfter > 0) {
+          $("#winner-subinfo").text(
+            `Este número no volverá a salir. Quedan ${leftAfter} ${leftAfter === 1 ? "intento" : "intentos"}.`
+          );
+        } else {
+          $("#winner-subinfo").text(
+            `¡Top completado! Se han extraído los ${totalTarget} números del sorteo.`
+          );
+        }
+
+        if (modalEl) {
+          modalEl.hidden = false;
+        }
+
+        launchConfetti();
+        playWinSound();
+
+        requestAnimationFrame(() => {
+          const btn = document.getElementById("modal-continue");
+          if (btn && typeof btn.focus === "function") {
+            try { btn.focus({ preventScroll: true }); } catch (e) { btn.focus(); }
+          }
+        });
+      }
+
+      function completeSpin(winningNumber) {
+        if (spinFinished) return;
+        spinFinished = true;
+        if (spinFinishTimer) {
+          clearTimeout(spinFinishTimer);
+          spinFinishTimer = null;
+        }
+        $("#wheel").off("transitionend.acavenSorteo");
+        stopPointerPinTracker();
+
+        const idxInPool = state.availableNumbers.indexOf(winningNumber);
+        if (idxInPool !== -1) {
+          state.availableNumbers.splice(idxInPool, 1);
+        }
+        state.drawnNumbers.push(winningNumber);
+        saveState();
+
+        spinning = false;
+        pendingWheelRefresh = true;
+        $(".stage").removeClass("spin-active");
+
+        const attemptIndex = state.drawnNumbers.length;
+        const totalTarget = maxAttemptsForSession();
+        const leftAfter = remainingAttempts();
+
+        updateStatusAndList();
+        showWinnerModal(winningNumber, attemptIndex, totalTarget, leftAfter);
+      }
+
+      function spin() {
+        if (spinning || remainingAttempts() === 0 || state.availableNumbers.length === 0) return;
+        getAudioContext();
+
+        const visibleItems = getVisibleWheelNumbers();
+        if (!visibleItems.length) return;
+
+        /* Escoge al azar un número real disponible sin repetición */
+        const randomPoolIdx = Math.floor(Math.random() * state.availableNumbers.length);
+        const chosenNumber = state.availableNumbers[randomPoolIdx];
+
+        /* Busca su gajo visible para alinear la parada de la ruleta */
+        let visualIndex = visibleItems.findIndex(item => item.num === chosenNumber);
+        if (visualIndex === -1) {
+          visualIndex = Math.floor(Math.random() * visibleItems.length);
+        }
+
+        const count = visibleItems.length;
+        const segment = 360 / count;
+
+        spinning = true;
+        spinFinished = false;
+        updateStatusAndList();
+        $(".stage").addClass("spin-active");
+
+        const pinCount = Math.max(count * 2, 12);
+        startPointerPinTracker(SPIN_DURATION_MS, pinCount);
+
+        const targetCenter = visualIndex * segment + segment / 2;
+        const target = (360 - targetCenter) % 360;
+        const normalizedCurrent = ((currentRotation % 360) + 360) % 360;
+        const deltaToTarget = ((target - normalizedCurrent) % 360 + 360) % 360;
+        currentRotation += 360 * 6 + deltaToTarget;
+
+        const wheelEl = document.getElementById("wheel");
+        if (wheelEl) {
+          wheelEl.style.transition = `transform ${SPIN_DURATION_MS}ms cubic-bezier(.08, .72, .12, 1)`;
+          void wheelEl.offsetWidth;
+          wheelEl.style.transform = `rotate3d(0, 0, 1, ${currentRotation}deg)`;
+        }
+
+        $("#wheel").off("transitionend.acavenSorteo").on("transitionend.acavenSorteo", function (e) {
+          if (e.target === wheelEl && (!e.originalEvent || e.originalEvent.propertyName === "transform")) {
+            completeSpin(chosenNumber);
+          }
+        });
+
+        spinFinishTimer = setTimeout(() => completeSpin(chosenNumber), SPIN_DURATION_MS + 25);
+      }
+
+      function closeWinnerModal() {
+        $("#winner-modal").prop("hidden", true);
+        if (pendingWheelRefresh) {
+          pendingWheelRefresh = false;
+          renderWheel();
+        }
+      }
+
+      function applyRangeAndTop(forceReset) {
+        const minRaw = Math.trunc(Number($("#range-min").val()));
+        const maxRaw = Math.trunc(Number($("#range-max").val()));
+        const topRaw = Math.trunc(Number($("#top-count").val()));
+
+        if (!Number.isFinite(minRaw) || !Number.isFinite(maxRaw)) {
+          showToast("Ingresa números válidos para el rango");
+          return;
+        }
+
+        const cleanMin = Math.min(minRaw, maxRaw);
+        const cleanMax = Math.max(minRaw, maxRaw);
+        const totalInRange = cleanMax - cleanMin + 1;
+
+        if (!Number.isFinite(topRaw) || topRaw < 1) {
+          showToast("El top de números debe ser al menos 1");
+          return;
+        }
+
+        const clampedTop = Math.min(topRaw, totalInRange);
+        const rangeChanged = cleanMin !== state.rangeMin || cleanMax !== state.rangeMax;
+
+        if (forceReset || rangeChanged) {
+          state = createFreshState(cleanMin, cleanMax, clampedTop);
+          saveState();
+          syncInputsFromState();
+          renderWheel();
+          showToast(`Sorteo iniciado: ${cleanMin} a ${cleanMax} · Top ${clampedTop}`);
+          return;
+        }
+
+        state.topCount = clampedTop;
+        if (state.drawnNumbers.length > state.topCount) {
+          state.drawnNumbers = state.drawnNumbers.slice(0, state.topCount);
+          const allNums = buildRangeNumbers(state.rangeMin, state.rangeMax);
+          const drawnSet = new Set(state.drawnNumbers);
+          state.availableNumbers = allNums.filter(n => !drawnSet.has(n));
+        }
+        saveState();
+        syncInputsFromState();
+        updateStatusAndList();
+        showToast(`Top actualizado a ${clampedTop} números`);
+      }
+
+      function resetCurrentSession() {
+        state = createFreshState(state.rangeMin, state.rangeMax, state.topCount);
+        saveState();
+        renderWheel();
+        showToast("Sorteo reiniciado");
+      }
+
+      async function copyDrawnNumbers() {
+        if (!state.drawnNumbers.length) {
+          showToast("Aún no hay números sorteados");
+          return;
+        }
+        const textToCopy = state.drawnNumbers
+          .map((n, i) => `#${i + 1}: ${n}`)
+          .join(", ");
+        try {
+          await navigator.clipboard.writeText(textToCopy);
+          showToast("Lista de números copiada");
+        } catch (e) {
+          showToast("No se pudo copiar automáticamente");
+        }
+      }
+
+      function init() {
+        fillProjectBrand();
+        syncInputsFromState();
+        renderWheel();
+
+        $("#spin-button").on("click", spin);
+        $(document).on("keydown", e => {
+          if (e.code === "Space" && !$(e.target).is("input,textarea,button")) {
+            e.preventDefault();
+            if (!$("#winner-modal").prop("hidden")) {
+              closeWinnerModal();
+            } else {
+              spin();
+            }
+          }
+        });
+
+        $("#modal-continue, #close-modal").on("click", closeWinnerModal);
+        $("#winner-modal").on("click", e => {
+          if (e.target === e.currentTarget) closeWinnerModal();
+        });
+
+        $("#apply-draw-config").on("click", () => applyRangeAndTop(false));
+        $("#reset-draw-session").on("click", resetCurrentSession);
+        $("#copy-numbers-btn").on("click", copyDrawnNumbers);
+
+        let resizeTimer = null;
+        $(window).on("resize", () => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(() => {
+            if (!spinning) renderWheel();
+          }, 150);
+        });
+      }
+
+      $(init);
+    })(jQuery);
+  </script>
+</body>
+</html>
