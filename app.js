@@ -87,14 +87,16 @@
     $("#spin-button").prop("disabled", spinning || total === 0);
     $("#spin-label").text(total === 0 ? state.labels.noStock : (state.labels.spin || "GIRAR"));
   }
-  function shortSlotLabel(title, count) {
-    const clean = String(title || "Premio").trim();
-    if (count <= 10) return clean;
-    const words = clean.split(/\s+/).filter(w => !["de", "la", "el", "los", "las", "y"].includes(w.toLowerCase()));
-    if (count >= 20) {
-      return (words[0] || clean).slice(0, 10);
-    }
-    return words.slice(0, 2).join(" ").slice(0, 15);
+  function shortSlotLabel(title) {
+    return String(title || "Premio").trim();
+  }
+  function randomSlotColor(slotIndex, totalCount) {
+    const baseHue = totalCount > 0 ? Math.floor((slotIndex * 360) / totalCount) : 0;
+    const jitter = Math.floor((Math.random() - 0.5) * 90);
+    const hue = (((baseHue + jitter) % 360) + 360) % 360;
+    const saturation = 76 + Math.floor(Math.random() * 20);
+    const lightness = 42 + Math.floor(Math.random() * 16);
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   }
   function renderWheel() {
     currentWheelSlots = expandedStockPrizes();
@@ -110,10 +112,9 @@
       return;
     }
 
-    const palette = ["#126edc", "#093b9c", "#1595e8", "#2553c5", "#0d6bb5", "#1b2e91"];
     const segment = 360 / count;
-    const stops = slots.map((item, i) => {
-      const fill = i % 2 === 0 ? palette[i % palette.length] : (item.accent || palette[(i + 1) % palette.length]);
+    const stops = slots.map((_, i) => {
+      const fill = randomSlotColor(i, count);
       return `${fill} ${i * segment}deg ${(i + 1) * segment}deg`;
     }).join(",");
     wheelEl.style.background = `conic-gradient(${stops})`;

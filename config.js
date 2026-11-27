@@ -47,7 +47,7 @@ window.ACAVEN_CONFIG = {
     { id: "cafetera", title: "Cafetera Black+Decker", image: "img/premio-3.png", stock: 2, accent: "#ff3b5c" },
     { id: "personalblender", title: "Personal Blender", image: "img/premio-4.png", stock: 3, accent: "#22e584" },
     { id: "sandiwchera", title: "Sandiwchera Black+Decker", image: "img/premio-5.png", stock: 1, accent: "#9b5de5" },
-    { id: "tarjeta", title: "GiftCard Selectos", image: "img/premio-6.png", stock: 4, accent: "#ff7b00" },
-    { id: "tarjetasiman", title: "GiftCard Siman", image: "img/premio-7.png", stock: 4, accent: "#ff4ecd" }
+    { id: "tarjeta", title: "Tarjeta Selectos", image: "img/premio-6.png", stock: 4, accent: "#ff7b00" },
+    { id: "tarjetasiman", title: "Tarjeta Siman", image: "img/premio-7.png", stock: 4, accent: "#ff4ecd" }
   ]
 };
